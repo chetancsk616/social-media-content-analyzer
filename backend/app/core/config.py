@@ -47,7 +47,7 @@ class Settings(BaseSettings):
 
     # ── External AI (Groq / Gemini) ───────────────────────────────────────────
     groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
     groq_timeout_seconds: int = 30
     gemini_api_key: str = ""
     gemini_model: str = "gemini-1.5-flash"

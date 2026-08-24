@@ -3,7 +3,8 @@ AI Recommendation service using Groq API (with Gemini fallback).
 
 Responsibilities:
   - Construct a structured prompt from local NLP analysis results.
-  - Call the Groq API (llama-3.3-70b-versatile or llama-3.1-8b-instant) for blazing-fast inference.
+  - Call the Groq API for blazing-fast inference.
+  - Dynamically discover active Groq chat models on the account.
   - Parse the structured JSON response.
   - Handle ALL failure modes gracefully so the app still works without an AI key.
 
@@ -22,7 +23,7 @@ import json
 import logging
 import os
 import re
-from typing import Optional
+from typing import Optional, List
 
 from app.core.config import get_settings
 from app.schemas.analysis import GeminiRecommendations
@@ -106,89 +107,66 @@ Rules:
 
 
 def _call_groq_api(prompt: str, api_key: str) -> dict:
-    """Call Groq API using official Groq client with model fallbacks."""
+    """Call Groq API using official Groq client with dynamic model discovery."""
     api_key_clean = api_key.strip()
     
-    # Priority list of current Groq production models
-    models_to_try = [
+    from groq import Groq
+    client = Groq(api_key=api_key_clean, timeout=float(settings.groq_timeout_seconds))
+
+    # Priority models list
+    models_to_try: List[str] = [
         settings.groq_model,
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "qwen/qwen3.6-27b",
+        "groq/compound",
+        "groq/compound-mini",
+        "allam-2-7b",
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "mixtral-8x7b-32768",
-        "gemma2-9b-it",
     ]
+
+    # Dynamically fetch available models from the account to prioritize valid ones
+    try:
+        remote_models = [m.id for m in client.models.list().data if "whisper" not in m.id and "guard" not in m.id]
+        if remote_models:
+            # Prepend remote chat models that exist
+            for rm in remote_models:
+                if rm not in models_to_try:
+                    models_to_try.append(rm)
+    except Exception as exc:
+        logger.warning("Could not list remote Groq models: %s", exc)
+
+    # Filter unique non-empty models
     models = [m for i, m in enumerate(models_to_try) if m and m not in models_to_try[:i]]
 
-    try:
-        from groq import Groq
-        client = Groq(api_key=api_key_clean, timeout=float(settings.groq_timeout_seconds))
+    last_error = None
+    for model_name in models:
+        try:
+            chat_completion = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a professional social media strategist. Respond ONLY with a valid JSON object matching the requested schema.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.3,
+                max_tokens=1500,
+            )
+            raw_text = chat_completion.choices[0].message.content.strip()
+            if raw_text.startswith("```"):
+                raw_text = re.sub(r"```(?:json)?", "", raw_text).replace("```", "").strip()
+            return json.loads(raw_text)
+        except Exception as model_err:
+            last_error = model_err
+            logger.info("Groq model %s failed: %s; trying fallback model.", model_name, model_err)
+            continue
 
-        last_error = None
-        for model_name in models:
-            try:
-                chat_completion = client.chat.completions.create(
-                    model=model_name,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "You are a professional social media strategist. Respond ONLY with a valid JSON object matching the requested schema.",
-                        },
-                        {"role": "user", "content": prompt},
-                    ],
-                    response_format={"type": "json_object"},
-                    temperature=0.3,
-                    max_tokens=1500,
-                )
-                raw_text = chat_completion.choices[0].message.content.strip()
-                if raw_text.startswith("```"):
-                    raw_text = re.sub(r"```(?:json)?", "", raw_text).replace("```", "").strip()
-                return json.loads(raw_text)
-            except Exception as model_err:
-                last_error = model_err
-                logger.warning("Groq model %s failed: %s; trying next model.", model_name, model_err)
-                continue
-
-        if last_error:
-            raise last_error
-
-    except ImportError:
-        # Fallback to direct HTTP request with httpx if groq library is not installed
-        import httpx
-        headers = {
-            "Authorization": f"Bearer {api_key_clean}",
-            "Content-Type": "application/json",
-        }
-        for model_name in models:
-            try:
-                payload = {
-                    "model": model_name,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "You are a professional social media strategist. Respond ONLY with a valid JSON object matching the requested schema.",
-                        },
-                        {"role": "user", "content": prompt},
-                    ],
-                    "response_format": {"type": "json_object"},
-                    "temperature": 0.3,
-                    "max_tokens": 1500,
-                }
-                with httpx.Client(timeout=settings.groq_timeout_seconds) as http_client:
-                    resp = http_client.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers=headers,
-                        json=payload,
-                    )
-                    resp.raise_for_status()
-                    data = resp.json()
-                    raw_text = data["choices"][0]["message"]["content"].strip()
-                    if raw_text.startswith("```"):
-                        raw_text = re.sub(r"```(?:json)?", "", raw_text).replace("```", "").strip()
-                    return json.loads(raw_text)
-            except Exception as exc:
-                logger.warning("Direct HTTP Groq model %s failed: %s", model_name, exc)
-                continue
-
+    if last_error:
+        raise last_error
     raise RuntimeError("All Groq models failed to produce a valid response.")
 
 
