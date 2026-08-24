@@ -100,4 +100,6 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     sentiment_model_loaded: bool
-    gemini_configured: bool
+    gemini_configured: bool = False
+    groq_configured: bool = False
+    ai_configured: bool = False

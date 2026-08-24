@@ -13,7 +13,7 @@ export default function ImprovedPost({ improvedPost }) {
           <span className="text-lg">✍️</span>
           Improved Version
           <span className="text-xs text-slate-500 font-normal bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
-            Gemini rewrite
+            Groq AI rewrite
           </span>
         </h3>
         <CopyButton text={improvedPost} label="Copy post" />

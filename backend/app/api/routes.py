@@ -33,13 +33,15 @@ router = APIRouter(prefix="/api")
 async def health_check() -> HealthResponse:
     """Returns application health status and capability flags."""
     import os
+    groq_ok = bool(settings.groq_api_key or os.environ.get("GROQ_API_KEY", ""))
+    gemini_ok = bool(settings.gemini_api_key or os.environ.get("GEMINI_API_KEY", ""))
     return HealthResponse(
         status="ok",
         version=settings.app_version,
         sentiment_model_loaded=sentiment_service.is_model_loaded(),
-        gemini_configured=bool(
-            settings.gemini_api_key or os.environ.get("GEMINI_API_KEY", "")
-        ),
+        groq_configured=groq_ok,
+        gemini_configured=gemini_ok,
+        ai_configured=groq_ok or gemini_ok,
     )
 
 

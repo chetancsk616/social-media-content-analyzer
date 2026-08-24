@@ -3,10 +3,10 @@ import DropZone from '../components/DropZone'
 import ProcessingState from '../components/ProcessingState'
 
 const FEATURES = [
-  { icon: '🧠', label: 'DistilBERT Sentiment', desc: 'Local transformer inference' },
+  { icon: '🧠', label: 'Local Sentiment', desc: 'DistilBERT / VADER inference' },
   { icon: '📊', label: 'TF-IDF Keywords', desc: 'scikit-learn extraction' },
   { icon: '👁️', label: 'OpenCV + OCR', desc: 'Image preprocessing pipeline' },
-  { icon: '✨', label: 'Gemini AI', desc: 'Natural-language recommendations' },
+  { icon: '⚡', label: 'Groq LPU AI', desc: 'Ultra-fast recommendations' },
 ]
 
 export default function UploadPage({

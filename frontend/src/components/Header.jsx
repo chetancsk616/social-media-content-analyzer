@@ -29,7 +29,7 @@ export default function Header({ onReset, hasResults }) {
           <nav className="flex items-center gap-3">
             <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Local NLP · Gemini AI
+              Local NLP · Groq AI
             </span>
             {hasResults && (
               <button

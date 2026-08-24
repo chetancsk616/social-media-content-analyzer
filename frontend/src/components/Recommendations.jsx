@@ -28,7 +28,7 @@ export default function Recommendations({ aiRecommendations }) {
             <span className="text-lg">✨</span>
             AI Recommendations
             <span className="ml-1 text-xs text-slate-500 font-normal bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
-              Powered by Gemini
+              Powered by Groq AI
             </span>
           </h3>
           <div className="space-y-3">
