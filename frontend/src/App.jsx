@@ -3,8 +3,11 @@ import Header from './components/Header'
 import UploadPage from './pages/UploadPage'
 import ResultsPage from './pages/ResultsPage'
 import { useAnalysis } from './hooks/useAnalysis'
+import { useTheme } from './hooks/useTheme'
 
 export default function App() {
+  const { theme, setTheme } = useTheme()
+
   const {
     status,
     results,
@@ -21,8 +24,13 @@ export default function App() {
   const showResults = status === 'success' && results !== null
 
   return (
-    <div className="min-h-screen">
-      <Header onReset={reset} hasResults={showResults} />
+    <div className="min-h-screen transition-colors duration-300">
+      <Header
+        onReset={reset}
+        hasResults={showResults}
+        theme={theme}
+        setTheme={setTheme}
+      />
 
       <main>
         {showResults ? (

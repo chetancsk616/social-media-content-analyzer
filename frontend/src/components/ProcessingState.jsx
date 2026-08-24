@@ -3,8 +3,8 @@ import React from 'react'
 function StepIcon({ status }) {
   if (status === 'completed') {
     return (
-      <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
-        <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+        <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
         </svg>
       </div>
@@ -12,15 +12,15 @@ function StepIcon({ status }) {
   }
   if (status === 'active') {
     return (
-      <div className="w-8 h-8 rounded-full bg-accent-500/20 border border-accent-500/40 flex items-center justify-center flex-shrink-0">
+      <div className="w-8 h-8 rounded-full bg-accent-100 dark:bg-accent-500/20 border border-accent-300 dark:border-accent-500/40 flex items-center justify-center flex-shrink-0">
         <div className="w-3 h-3 rounded-full bg-accent-400 animate-ping absolute" />
-        <div className="w-3 h-3 rounded-full bg-accent-500" />
+        <div className="w-3 h-3 rounded-full bg-accent-600 dark:bg-accent-500" />
       </div>
     )
   }
   return (
-    <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
-      <div className="w-2 h-2 rounded-full bg-slate-700" />
+    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] flex items-center justify-center flex-shrink-0">
+      <div className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-700" />
     </div>
   )
 }
@@ -33,8 +33,8 @@ export default function ProcessingState({
 }) {
   return (
     <div className="glass-card p-6 space-y-1 animate-fade-in">
-      <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-accent-400 animate-pulse" />
+      <h3 className="text-slate-900 dark:text-white font-semibold text-sm mb-4 flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-accent-500 animate-pulse" />
         Processing your content…
       </h3>
 
@@ -43,7 +43,6 @@ export default function ProcessingState({
         const isActive = currentStep === step.id
         const isPending = !isCompleted && !isActive
 
-        // Skip OCR step visual if not needed (it won't be made active unless triggered)
         const status = isCompleted ? 'completed' : isActive ? 'active' : 'pending'
 
         return (
@@ -58,7 +57,11 @@ export default function ProcessingState({
             </div>
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-medium transition-colors duration-300 ${
-                isActive ? 'text-accent-300' : isCompleted ? 'text-emerald-400' : 'text-slate-600'
+                isActive
+                  ? 'text-accent-700 dark:text-accent-300'
+                  : isCompleted
+                  ? 'text-emerald-700 dark:text-emerald-400'
+                  : 'text-slate-400 dark:text-slate-600'
               }`}>
                 {step.label}
               </p>
@@ -68,7 +71,7 @@ export default function ProcessingState({
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="w-1 h-1 rounded-full bg-accent-400 animate-bounce"
+                    className="w-1 h-1 rounded-full bg-accent-500 animate-bounce"
                     style={{ animationDelay: `${i * 0.15}s` }}
                   />
                 ))}
@@ -81,7 +84,7 @@ export default function ProcessingState({
       {/* Upload progress bar */}
       {uploadProgress > 0 && uploadProgress < 100 && (
         <div className="mt-4 space-y-1.5">
-          <div className="flex justify-between text-xs text-slate-500">
+          <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Uploading…</span>
             <span>{uploadProgress}%</span>
           </div>

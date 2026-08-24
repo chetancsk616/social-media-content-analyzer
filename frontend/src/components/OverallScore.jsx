@@ -25,8 +25,8 @@ export default function OverallScore({ score }) {
     <div className="glass-card p-8 flex flex-col items-center text-center animate-slide-up">
       {/* Title */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-300">Engagement Optimization Score</h2>
-        <p className="text-xs text-slate-500 mt-1">
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Engagement Optimization Score</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
           Heuristic analytical score — not a guarantee of actual engagement
         </p>
       </div>
@@ -52,9 +52,10 @@ export default function OverallScore({ score }) {
             />
             {/* Background track */}
             <RadialBar
-              background={{ fill: 'rgba(255,255,255,0.04)' }}
+              background={{ fill: 'currentColor', opacity: 0.08 }}
               dataKey="value"
               cornerRadius={8}
+              className="text-slate-400 dark:text-white"
             />
           </RadialBarChart>
         </ResponsiveContainer>
@@ -67,7 +68,7 @@ export default function OverallScore({ score }) {
           >
             {score}
           </span>
-          <span className="text-slate-400 text-sm font-medium mt-1">/ 100</span>
+          <span className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">/ 100</span>
         </div>
 
         {/* Glow ring */}
@@ -90,7 +91,7 @@ export default function OverallScore({ score }) {
       </div>
 
       {/* Score tier description */}
-      <p className="mt-3 text-xs text-slate-500 max-w-xs">
+      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
         {score >= 75
           ? 'This content is well-optimized. Minor tweaks can push it further.'
           : score >= 55

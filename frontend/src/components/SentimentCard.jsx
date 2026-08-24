@@ -8,16 +8,16 @@ function SentimentBar({ label, confidence }) {
   const emoji = isPositive ? '😊' : isNegative ? '😞' : '😐'
 
   const colorMap = {
-    emerald: { text: 'text-emerald-400', bar: 'from-emerald-600 to-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    rose:    { text: 'text-rose-400',    bar: 'from-rose-600 to-rose-400',       bg: 'bg-rose-500/10',    border: 'border-rose-500/20'    },
-    amber:   { text: 'text-amber-400',   bar: 'from-amber-600 to-amber-400',     bg: 'bg-amber-500/10',   border: 'border-amber-500/20'   },
+    emerald: { text: 'text-emerald-600 dark:text-emerald-400', bar: 'from-emerald-600 to-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/10', border: 'border-emerald-200 dark:border-emerald-500/20' },
+    rose:    { text: 'text-rose-600 dark:text-rose-400',       bar: 'from-rose-600 to-rose-400',       bg: 'bg-rose-100 dark:bg-rose-500/10',       border: 'border-rose-200 dark:border-rose-500/20'       },
+    amber:   { text: 'text-amber-600 dark:text-amber-400',     bar: 'from-amber-600 to-amber-400',     bg: 'bg-amber-100 dark:bg-amber-500/10',     border: 'border-amber-200 dark:border-amber-500/20'     },
   }
 
   const c = colorMap[color]
 
   return (
     <div className={`glass-card p-6 border ${c.border} animate-slide-up`}>
-      <h3 className="text-white font-semibold text-base mb-4 flex items-center gap-2">
+      <h3 className="text-slate-900 dark:text-white font-semibold text-base mb-4 flex items-center gap-2">
         <span className="text-lg">🧠</span>
         Sentiment Analysis
       </h3>
@@ -41,8 +41,8 @@ function SentimentBar({ label, confidence }) {
               style={{ width: `${confidence * 100}%` }}
             />
           </div>
-          <p className="text-xs text-slate-500 mt-2">
-            Detected via DistilBERT transformer model (local inference)
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            Detected via local NLP sentiment model (DistilBERT / VADER)
           </p>
         </div>
       </div>

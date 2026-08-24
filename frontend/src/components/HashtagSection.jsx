@@ -9,7 +9,6 @@ function CopyButton({ text, label = 'Copy' }) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback for older browsers
       const el = document.createElement('textarea')
       el.value = text
       document.body.appendChild(el)
@@ -24,15 +23,15 @@ function CopyButton({ text, label = 'Copy' }) {
   return (
     <button
       onClick={handleCopy}
-      className="text-xs px-2 py-1 rounded-md bg-white/[0.06] hover:bg-white/[0.1] text-slate-400 hover:text-white border border-white/[0.08] transition-all duration-200 flex items-center gap-1"
+      className="text-xs px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] dark:text-slate-400 dark:hover:text-white border border-slate-300/80 dark:border-white/[0.08] transition-all duration-200 flex items-center gap-1 cursor-pointer"
       aria-label={`Copy ${label}`}
     >
       {copied ? (
         <>
-          <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
           </svg>
-          <span className="text-emerald-400">Copied!</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-medium">Copied!</span>
         </>
       ) : (
         <>
@@ -57,7 +56,7 @@ export default function HashtagSection({ hashtags }) {
   return (
     <div className="glass-card p-6 animate-slide-up">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-semibold text-base flex items-center gap-2">
+        <h3 className="text-slate-900 dark:text-white font-semibold text-base flex items-center gap-2">
           <span className="text-lg">#️⃣</span>
           Hashtag Suggestions
         </h3>
@@ -69,7 +68,7 @@ export default function HashtagSection({ hashtags }) {
             key={index}
             className="group flex items-center gap-1"
           >
-            <span className="chip text-accent-300 border-accent-500/20 bg-accent-500/10 group-hover:bg-accent-500/20 transition-colors cursor-default">
+            <span className="chip cursor-default">
               {tag}
             </span>
             <CopyButton text={tag} label="" />
