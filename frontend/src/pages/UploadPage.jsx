@@ -1,0 +1,97 @@
+import React from 'react'
+import DropZone from '../components/DropZone'
+import ProcessingState from '../components/ProcessingState'
+
+const FEATURES = [
+  { icon: '🧠', label: 'DistilBERT Sentiment', desc: 'Local transformer inference' },
+  { icon: '📊', label: 'TF-IDF Keywords', desc: 'scikit-learn extraction' },
+  { icon: '👁️', label: 'OpenCV + OCR', desc: 'Image preprocessing pipeline' },
+  { icon: '✨', label: 'Gemini AI', desc: 'Natural-language recommendations' },
+]
+
+export default function UploadPage({
+  onFileSelect,
+  onTextSubmit,
+  status,
+  error,
+  processingSteps,
+  currentStep,
+  completedSteps,
+  uploadProgress,
+}) {
+  const isProcessing = status === 'uploading' || status === 'processing'
+
+  return (
+    <div className="min-h-screen bg-glow-top">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 lg:py-24">
+        {/* Hero */}
+        <div className="text-center mb-12 animate-fade-in">
+          <div className="inline-flex items-center gap-2 bg-accent-500/10 border border-accent-500/20 rounded-full px-4 py-1.5 text-xs text-accent-300 font-medium mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse" />
+            Local NLP · No cloud for analysis
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-4">
+            Analyze Your{' '}
+            <span className="gradient-text">Social Media</span>{' '}
+            Content
+          </h1>
+          <p className="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
+            Upload a PDF or image of your post. Get engagement scores, sentiment analysis,
+            keyword insights, and AI-powered recommendations.
+          </p>
+        </div>
+
+        {/* Feature pills */}
+        <div className="flex flex-wrap justify-center gap-2 mb-10">
+          {FEATURES.map((f) => (
+            <div
+              key={f.label}
+              className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.06] rounded-full px-3 py-1.5 text-xs"
+            >
+              <span>{f.icon}</span>
+              <span className="text-white font-medium">{f.label}</span>
+              <span className="text-slate-500">{f.desc}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Upload / Processing */}
+        {isProcessing ? (
+          <ProcessingState
+            steps={processingSteps}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            uploadProgress={uploadProgress}
+          />
+        ) : (
+          <DropZone
+            onFileSelect={onFileSelect}
+            onTextSubmit={onTextSubmit}
+            disabled={isProcessing}
+          />
+        )}
+
+        {/* Error state */}
+        {status === 'error' && error && (
+          <div className="mt-4 flex items-start gap-3 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 animate-fade-in">
+            <svg className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-rose-300 font-medium text-sm">Analysis failed</p>
+              <p className="text-rose-400/70 text-xs mt-0.5">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Footer note */}
+        <p className="text-center text-xs text-slate-600 mt-8">
+          Files are processed locally and deleted immediately after analysis.
+          Never stored or sent to third parties (except Gemini for recommendations).
+        </p>
+      </div>
+    </div>
+  )
+}

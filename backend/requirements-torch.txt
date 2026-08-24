@@ -1,0 +1,12 @@
+# PyTorch — install this FIRST, before requirements.txt
+#
+# Option A: Standard install (GPU-capable, ~2 GB total with MKL)
+# pip install torch==2.3.1
+#
+# Option B: CPU-only (recommended for development, ~200 MB)
+# pip install torch==2.3.1+cpu --index-url https://download.pytorch.org/whl/cpu
+#
+# On slow or restricted networks (e.g., corporate proxy):
+# 1. Download the wheel manually from https://download.pytorch.org/whl/cpu/torch-2.3.1+cpu-cp311-cp311-win_amd64.whl
+# 2. Install locally: pip install torch-2.3.1+cpu-cp311-cp311-win_amd64.whl
+torch==2.3.1
