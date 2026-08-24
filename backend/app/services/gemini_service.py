@@ -107,14 +107,13 @@ Rules:
 
 
 def _call_groq_api(prompt: str, api_key: str) -> dict:
-    """Call Groq API using official Groq client with dynamic model discovery."""
+    """Call Groq API using official Groq client with dynamic active model discovery."""
     api_key_clean = api_key.strip()
     
     from groq import Groq
     client = Groq(api_key=api_key_clean, timeout=float(settings.groq_timeout_seconds))
 
-    # Priority models list
-    models_to_try: List[str] = [
+    preferred_candidates = [
         settings.groq_model,
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b",
@@ -122,26 +121,33 @@ def _call_groq_api(prompt: str, api_key: str) -> dict:
         "groq/compound",
         "groq/compound-mini",
         "allam-2-7b",
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
     ]
 
-    # Dynamically fetch available models from the account to prioritize valid ones
-    try:
-        remote_models = [m.id for m in client.models.list().data if "whisper" not in m.id and "guard" not in m.id]
-        if remote_models:
-            # Prepend remote chat models that exist
-            for rm in remote_models:
-                if rm not in models_to_try:
-                    models_to_try.append(rm)
-    except Exception as exc:
-        logger.warning("Could not list remote Groq models: %s", exc)
+    models_to_try: List[str] = []
 
-    # Filter unique non-empty models
-    models = [m for i, m in enumerate(models_to_try) if m and m not in models_to_try[:i]]
+    # 1. First dynamically fetch live active models from Groq API
+    try:
+        remote_models = [
+            m.id for m in client.models.list().data
+            if not any(x in m.id for x in ["whisper", "guard", "audio", "orpheus"])
+        ]
+        # Order preferred candidates that exist remotely first
+        for pref in preferred_candidates:
+            if pref in remote_models:
+                models_to_try.append(pref)
+        # Append any remaining remote models
+        for rm in remote_models:
+            if rm not in models_to_try:
+                models_to_try.append(rm)
+    except Exception as exc:
+        logger.warning("Could not dynamically query Groq models: %s", exc)
+        models_to_try = [m for m in preferred_candidates if m]
+
+    if not models_to_try:
+        models_to_try = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
 
     last_error = None
-    for model_name in models:
+    for model_name in models_to_try:
         try:
             chat_completion = client.chat.completions.create(
                 model=model_name,
@@ -162,7 +168,7 @@ def _call_groq_api(prompt: str, api_key: str) -> dict:
             return json.loads(raw_text)
         except Exception as model_err:
             last_error = model_err
-            logger.info("Groq model %s failed: %s; trying fallback model.", model_name, model_err)
+            logger.info("Groq model %s failed: %s; trying next active model.", model_name, model_err)
             continue
 
     if last_error:
