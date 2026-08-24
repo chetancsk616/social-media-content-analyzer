@@ -11,13 +11,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Upgrade pip and install CPU-only PyTorch for DistilBERT sentiment model
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
-
-# Copy requirements from backend folder and install
+# Copy requirements and install
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Pre-download NLTK VADER data for instant offline sentiment inference
+RUN python -c "import nltk; nltk.download('vader_lexicon', quiet=True)"
 
 # Copy backend source code into container
 COPY backend/ .
