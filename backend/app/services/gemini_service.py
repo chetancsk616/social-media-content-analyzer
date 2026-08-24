@@ -24,8 +24,6 @@ import os
 import re
 from typing import Optional
 
-import httpx
-
 from app.core.config import get_settings
 from app.schemas.analysis import GeminiRecommendations
 
@@ -108,42 +106,97 @@ Rules:
 
 
 def _call_groq_api(prompt: str, api_key: str) -> dict:
-    """Call Groq API using HTTP client with JSON mode."""
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "model": settings.groq_model or "llama-3.3-70b-versatile",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a professional social media content analyst. You always respond in valid JSON matching the requested schema.",
-            },
-            {"role": "user", "content": prompt},
-        ],
-        "response_format": {"type": "json_object"},
-        "temperature": 0.3,
-        "max_tokens": 1500,
-    }
+    """Call Groq API using official Groq client with model fallbacks."""
+    api_key_clean = api_key.strip()
+    
+    # Priority list of current Groq production models
+    models_to_try = [
+        settings.groq_model,
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it",
+    ]
+    models = [m for i, m in enumerate(models_to_try) if m and m not in models_to_try[:i]]
 
-    with httpx.Client(timeout=settings.groq_timeout_seconds) as client:
-        response = client.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers=headers,
-            json=payload,
-        )
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"].strip()
-        return json.loads(content)
+    try:
+        from groq import Groq
+        client = Groq(api_key=api_key_clean, timeout=float(settings.groq_timeout_seconds))
+
+        last_error = None
+        for model_name in models:
+            try:
+                chat_completion = client.chat.completions.create(
+                    model=model_name,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a professional social media strategist. Respond ONLY with a valid JSON object matching the requested schema.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.3,
+                    max_tokens=1500,
+                )
+                raw_text = chat_completion.choices[0].message.content.strip()
+                if raw_text.startswith("```"):
+                    raw_text = re.sub(r"```(?:json)?", "", raw_text).replace("```", "").strip()
+                return json.loads(raw_text)
+            except Exception as model_err:
+                last_error = model_err
+                logger.warning("Groq model %s failed: %s; trying next model.", model_name, model_err)
+                continue
+
+        if last_error:
+            raise last_error
+
+    except ImportError:
+        # Fallback to direct HTTP request with httpx if groq library is not installed
+        import httpx
+        headers = {
+            "Authorization": f"Bearer {api_key_clean}",
+            "Content-Type": "application/json",
+        }
+        for model_name in models:
+            try:
+                payload = {
+                    "model": model_name,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are a professional social media strategist. Respond ONLY with a valid JSON object matching the requested schema.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "response_format": {"type": "json_object"},
+                    "temperature": 0.3,
+                    "max_tokens": 1500,
+                }
+                with httpx.Client(timeout=settings.groq_timeout_seconds) as http_client:
+                    resp = http_client.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers=headers,
+                        json=payload,
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    raw_text = data["choices"][0]["message"]["content"].strip()
+                    if raw_text.startswith("```"):
+                        raw_text = re.sub(r"```(?:json)?", "", raw_text).replace("```", "").strip()
+                    return json.loads(raw_text)
+            except Exception as exc:
+                logger.warning("Direct HTTP Groq model %s failed: %s", model_name, exc)
+                continue
+
+    raise RuntimeError("All Groq models failed to produce a valid response.")
 
 
 def _call_gemini_api(prompt: str, api_key: str) -> dict:
     """Fallback to Gemini API if configured."""
     import google.generativeai as genai
 
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=api_key.strip())
     model = genai.GenerativeModel(settings.gemini_model)
 
     response = model.generate_content(
