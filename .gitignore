@@ -60,3 +60,6 @@ tmp/
 
 # Models cache (large)
 .cache/
+
+.vercel
+.env*.local

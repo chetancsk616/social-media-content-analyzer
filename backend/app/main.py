@@ -79,7 +79,7 @@ app.add_middleware(
 app.include_router(router)
 
 
-@app.get("/", include_in_schema=False)
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 async def root():
     return {
         "message": f"{settings.app_name} API",
